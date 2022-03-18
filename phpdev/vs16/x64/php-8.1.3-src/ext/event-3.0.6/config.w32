@@ -1,0 +1,74 @@
+// vim:ft=javascript
+
+ARG_WITH("event", "for event support", "no");
+
+/* XXX maybe it'd make sense to define the config options to split the features like m4 does */
+
+if (PHP_EVENT != "no") {
+
+	var dll = get_define("PHPDLL");
+	var old_conf_dir = configure_module_dirname;
+	/* XXX override configure_module_dirname, define the basic extension, then set it back*/
+	if (null != dll.match(/^php5/)) {
+		configure_module_dirname = configure_module_dirname + "\\php5";
+	} else if (null != dll.match(/^php7/)) {
+		configure_module_dirname = configure_module_dirname + "\\php7";
+	} else if (null != dll.match(/^php8/)) {
+		configure_module_dirname = configure_module_dirname + "\\php8";
+	} else {
+		ERROR("Cannot match any known PHP version with '" + dll + "'");
+	}
+
+	/* XXX separate for options */
+	if (CHECK_HEADER_ADD_INCLUDE("event2/event.h", "CFLAGS_EVENT", PHP_PHP_BUILD + "\\include;" + PHP_EVENT) &&
+		CHECK_LIB("libevent.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_LIB("libevent_core.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_LIB("libevent_extras.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_LIB("libevent_openssl.lib", "event", PHP_PHP_BUILD + "\\lib;" + PHP_EVENT) &&
+		CHECK_HEADER_ADD_INCLUDE("pthread.h", "CFLAGS_EVENT", PHP_EVENT + ";" + old_conf_dir) &&
+		CHECK_HEADER_ADD_INCLUDE("sched.h", "CFLAGS_EVENT", PHP_EVENT + ";" + old_conf_dir) &&
+		CHECK_LIB("pthreadVC2.lib", "event", PHP_EVENT) &&
+		(typeof SETUP_OPENSSL === "function" && SETUP_OPENSSL("event", PHP_PHP_BUILD + "\\lib") > 0 ||
+			CHECK_HEADER_ADD_INCLUDE("openssl/ssl.h", "CFLAGS_EVENT") &&
+			CHECK_LIB("ssleay32.lib", "event", PHP_EVENT) &&
+			CHECK_LIB("libeay32.lib", "event", PHP_EVENT)) &&
+		CHECK_HEADER_ADD_INCLUDE("common.h", "CFLAGS_EVENT", configure_module_dirname + "\\src") &&
+		CHECK_HEADER_ADD_INCLUDE("http.h", "CFLAGS_EVENT", configure_module_dirname + "\\classes.h") &&
+		CHECK_HEADER_ADD_INCLUDE("php_event.h", "CFLAGS_EVENT", configure_module_dirname)) {
+
+		ADD_EXTENSION_DEP("event", "sockets");
+		ADD_FLAG("CFLAGS_EVENT", "/D PHP_EVENT_SOCKETS=1");
+
+		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_PTHREADS_LIB=1");
+		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_OPENSSL_LIB=1");
+		ADD_FLAG("CFLAGS_EVENT", "/D _EVENT_HAVE_OPENSSL=1");
+		ADD_FLAG("CFLAGS_EVENT", "/D HAVE_EVENT_EXTRA_LIB=1");
+
+		ARG_WITH("event-ns", "for custom PHP namespace in Event", "no");
+		if (PHP_EVENT_NS != "no" && PHP_EVENT_NS != "yes") {
+			PHP_EVENT_NS = PHP_EVENT_NS.replace('\\', '\\\\');
+			ADD_FLAG("CFLAGS_EVENT", "/D PHP_EVENT_NS=\"\\\"" + PHP_EVENT_NS + "\\\"\"");
+		}
+
+		EXTENSION("event", "php_event.c", true,
+				  "/I \"" + configure_module_dirname + "\" /DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+
+		ADD_SOURCES(configure_module_dirname + "\\src", "util.c fe.c pe.c", "event");
+		ADD_SOURCES(configure_module_dirname + "\\classes", " \
+			event.c \
+			base.c \
+			event_config.c \
+			buffer_event.c \
+			buffer.c \
+			event_util.c \
+			dns.c \
+			listener.c \
+			http.c \
+			http_request.c \
+			http_connection.c \
+			ssl_context.c",
+			"event");
+	} else {
+		WARNING("event not enabled, libraries or headers not found");
+	}
+}

@@ -1,0 +1,276 @@
+<?php
+/** @generate-function-entries */
+
+namespace @PHP_EVENT_NS@ {
+
+class EventConfig {
+    public function __construct() {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public function avoidMethod(string $method): bool {}
+    public function requireFeatures(int $feature): bool {}
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000
+    public function setMaxDispatchInterval(int $max_interval, int $max_callbacks, int $min_priority): void {}
+#endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02000201 /* 2.0.2-alpha */
+    public function setFlags(int $flags): bool {}
+#endif
+}
+
+class EventBase {
+    public function __construct(?EventConfig $cfg = null) {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public function getMethod(): string {}
+    public function getFeatures(): int {}
+    public function priorityInit(int $n_priorities): bool {}
+    public function loop(int $flags = -1): bool {}
+    public function dispatch(): bool {}
+    public function exit(float $timeout = 0.0): bool {}
+    public function set(Event $event): bool {}
+    public function stop(): bool {}
+    public function gotStop(): bool {}
+    public function gotExit(): bool {}
+    public function getTimeOfDayCached(): float {}
+    public function reInit(): bool {}
+    public function free(): void {}
+#if LIBEVENT_VERSION_NUMBER >= 0x02010100
+    public function updateCacheTime(): bool {}
+#endif
+#if LIBEVENT_VERSION_NUMBER >= 0x02010200
+    public function resume(): bool {}
+#endif
+}
+
+class Event {
+    public function __construct(EventBase $base, mixed $fd, int $what, callable $cb, ?mixed $arg = null) {}
+    public function free(): void {}
+    public function set(EventBase $base, mixed $fd, int $what = null, ?callable $cb = null, ?mixed $arg = null): bool {}
+    public static function getSupportedMethods(): array {}
+    public function add(float $timeout = -1): bool {}
+    public function del(): bool{}
+    public function setPriority(int $priority): bool {}
+    public function pending(int $flags): bool {}
+#if LIBEVENT_VERSION_NUMBER >= 0x02010200
+    public function removeTimer(): bool {}
+#endif
+    public static function timer(EventBase $base, callable $cb, ?mixed $arg = null): Event {}
+    public function setTimer(EventBase $base, callable $cb, ?mixed $arg = null): bool {}
+    public static function signal(EventBase $base, int $signum, callable $cb, ?mixed $arg = null): Event {}
+    /**
+     * @alias @PHP_EVENT_ALIAS_PREFIX@Event::add
+    */
+    public function addTimer(float $timeout = -1): bool {}
+    /**
+     * @alias @PHP_EVENT_ALIAS_PREFIX@Event::del
+    */
+    public function delTimer(): bool {}
+    /**
+     * @alias @PHP_EVENT_ALIAS_PREFIX@Event::add
+    */
+    public function addSignal(float $timeout = -1): bool {}
+    /**
+     * @alias @PHP_EVENT_ALIAS_PREFIX@Event::del
+    */
+    public function delSignal(): bool {}
+}
+
+#if HAVE_EVENT_EXTRA_LIB
+class EventDnsBase {
+    public function __construct(EventBase $base, bool $initialize) {}
+    public function parseResolvConf(int $flags, string $filename): bool {}
+    public function addNameserverIp(string $ip): bool {}
+    public function loadHosts(string $hosts): bool {}
+    public function clearSearch(): void {}
+    public function addSearch(string $domain): void {}
+    public function setSearchNdots(int $ndots): void {}
+    public function setOption(string $option, string $value): bool {}
+    public function countNameservers(): int {}
+}
+
+class EventHttpConnection {
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
+    public function __construct(EventBase $base, ?EventDnsBase $dns_base, string $address, int $port, ?EventSslContext $ctx = null) {}
+#else
+    public function __construct(EventBase $base, ?EventDnsBase $dns_base, string $address, int $port) {}
+#endif
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public function getBase() : EventBase|false {}
+    public function getPeer(?mixed &$address, ?mixed &$port) : void {}
+    public function setLocalAddress(string $address) : void {}
+    public function setLocalPort(int $port) : void {}
+    public function setTimeout(int $timeout) : void {}
+    public function setMaxHeadersSize(int $max_size) : void {}
+    public function setMaxBodySize(int $max_size) : void {}
+    public function setRetries(int $retries) : void {}
+    public function makeRequest(EventHttpRequest $req, int $type, string $uri) : ?bool {}
+    public function setCloseCallback(callable $callback, ?mixed $data = null) : void {}
+}
+
+class EventHttp {
+#if LIBEVENT_VERSION_NUMBER >= 0x02010000 && defined(HAVE_EVENT_OPENSSL_LIB)
+	public function __construct(EventBase $base, ?EventSslContext $ctx = null) {}
+#else
+	public function __construct(EventBase $base) {}
+#endif
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+	public function accept(mixed $socket): bool {}
+	public function bind(string $address, int $port): bool {}
+	public function setCallback(string $path, callable $cb, ?mixed $arg = null): bool {}
+	public function setDefaultCallback(callable $cb, ?mixed $arg = null): void {}
+	public function setAllowedMethods(int $methods): void {}
+	public function setMaxBodySize(int $value): void {}
+	public function setMaxHeadersSize(int $value): void {}
+	public function setTimeout(int $value): void {}
+	public function addServerAlias(string $alias): bool {}
+	public function removeServerAlias(string $alias): bool {}
+}
+
+class EventHttpRequest {
+
+	public function __construct(callable $callback, ?mixed $data = null) {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public function free(): void {}
+    public function getCommand(): int {}
+    public function getHost(): string {}
+    public function getUri(): string {}
+    public function getResponseCode(): int {}
+    public function getInputHeaders(): array {}
+    public function getOutputHeaders(): array {}
+    public function getInputBuffer(): EventBuffer {}
+    public function getOutputBuffer(): EventBuffer {}
+#if LIBEVENT_VERSION_NUMBER >= 0x02001100
+    public function getBufferEvent(): ?EventBufferEvent {}
+#endif
+    public function getConnection(): ?EventHttpConnection{}
+    public function closeConnection(): void {}
+    public function sendError(int $error, ?string $reason = null): void {}
+    public function sendReply(int $code, string $reason, ?EventBuffer $buf = null): void {}
+    public function sendReplyChunk(EventBuffer $buf): void {}
+    public function sendReplyEnd(): void {}
+    public function sendReplyStart(int $code, string $reason): void {}
+    public function cancel(): void {}
+    public function addHeader(string $key, string $value, int $type): bool {}
+    public function clearHeaders(): void {}
+    public function removeHeader(string $key, int $type): bool {}
+    public function findHeader(string $key, int $type): ?string {}
+}
+
+class EventListener {
+    public function __construct(EventBase $base, callable $cb, ?mixed $data, int $flags, int $backlog, mixed $target) {}
+    final public function __sleep() : array {}
+    final public function __wakeup() : void {}
+    public function free(): void {}
+    public function enable(): bool {}
+    public function disable(): bool {}
+    public function setCallback(callable $cb, ?mixed $arg = null): void {}
+    public function setErrorCallback(callable $cb): void {}
+#if LIBEVENT_VERSION_NUMBER >= 0x02000300
+    public function getBase(): EventBase {}
+#endif
+    public function getSocketName(?mixed &$address, ?mixed &$port): bool {}
+}
+
+#endif
+
+class EventUtil {
+    private function __construct() {}
+    public static function getLastSocketErrno(?\Socket $socket = null): int|false {}
+    public static function getLastSocketError(?mixed $socket = null): string|false {}
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	public static function sslRandPoll(): bool {}
+#endif
+	public static function getSocketName(mixed $socket, ?mixed &$address, ?mixed &$port = null): bool {}
+	public static function getSocketFd(mixed $socket): int {}
+	public static function setSocketOption(mixed $socket, int $level, int $optname, mixed $optval): bool {}
+#ifdef PHP_EVENT_SOCKETS_SUPPORT
+	public static function createSocket(int $fd): \Socket|false {}
+#endif
+}
+
+class EventBuffer {
+    public function __construct() {}
+    public function freeze(bool $at_front): bool {}
+    public function unfreeze(bool $at_front): bool {}
+    public function lock(bool $at_front): void {}
+    public function unlock(bool $at_front): void {}
+    public function enableLocking(): void {}
+    public function add(string $data): bool {}
+    public function read(int $max_bytes): string {}
+    public function addBuffer(EventBuffer $buf): bool {}
+    public function appendFrom(EventBuffer $buf, int $len): int {}
+    public function expand(int $len): bool {}
+    public function prepend(string $data): bool {}
+    public function prependBuffer(EventBuffer $buf): bool {}
+    public function drain(int $len): bool {}
+    public function copyout(string &$data, int $max_bytes): int {}
+    public function readLine(int $eol_style): ?string {}
+    public function search(string $what, int $start = -1, int $end = -1): int|false {}
+    public function searchEol(int $start = -1, int $eol_style = EventBuffer::EOL_ANY): int|false {}
+    public function pullup(int $size): ?string {}
+    public function write(mixed $fd, int $howmuch = -1): int|false {}
+    public function readFrom(mixed $fd, int $howmuch = -1): int|false {}
+    public function substr(int $start, int $length = -1): string|false {}
+}
+
+class EventBufferEvent {
+    public function __construct(EventBase $base, ?mixed $socket = null, int $options = 0,
+        ?callable $readcb = null, ?callable $writecb = null, ?callable $eventcb = null, ?mixed $arg = null) {}
+    public function free(): void {}
+    public function close(): void {}
+    public function connect(string $addr): bool {}
+#ifdef HAVE_EVENT_EXTRA_LIB
+    public function connectHost(?EventDnsBase $dns_base, string $hostname, int $port, int $family = EventUtil::AF_UNSPEC): bool {}
+#else
+    public function connectHost(mixed $unused, string $hostname, int $port, int $family = EventUtil::AF_UNSPEC): bool {}
+#endif
+    public function getDnsErrorString(): string {}
+    public function setCallbacks(?callable $readcb, ?callable $writecb, ?callable $eventcb, ?mixed $arg = null): void {}
+    public function enable(int $events): bool {}
+    public function disable(int $events): bool {}
+    public function getEnabled(): int {}
+    public function getInput(): EventBuffer {}
+    public function getOutput(): EventBuffer {}
+    public function setWatermark(int $events, int $lowmark, int $highmark): void {}
+    public function write(string $data): bool {}
+    public function writeBuffer(EventBuffer $buf): bool {}
+    public function read(int $size): ?string {}
+    public function readBuffer(EventBuffer $buf): bool {}
+    public static function createPair(EventBase $base, int $options = 0): array|false {}
+    public function setPriority(int $priority): bool {}
+    public function setTimeouts(float $timeout_read, float $timeout_write): bool {}
+#ifdef HAVE_EVENT_OPENSSL_LIB
+	public static function createSslFilter(EventBufferEvent $unnderlying, EventSslContext $ctx, int $state, int $options = 0): EventBufferEvent {}
+    public static function sslSocket(EventBase $base, mixed $socket, EventSslContext $ctx, int $state, int $options = 0): EventBufferEvent {}
+    public function sslError(): string {}
+    public function sslRenegotiate(): void {}
+    public function sslGetCipherInfo(): string {}
+    public function sslGetCipherName(): string {}
+    public function sslGetCipherVersion(): string {}
+    public function sslGetProtocol(): string {}
+#endif
+}
+
+#ifdef HAVE_EVENT_OPENSSL_LIB
+class EventSslContext {
+	public function __construct(int $method, array $options) {}
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L && !defined(LIBRESSL_VERSION_NUMBER)
+    public function setMinProtoVersion(int $proto): bool {}
+    public function setMaxProtoVersion(int $proto): bool {}
+#endif
+}
+#endif
+
+}
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: fdm=marker
+ * vim: noet sts=4 sw=4 ts=4 filetype=php
+ */
